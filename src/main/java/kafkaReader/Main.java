@@ -46,7 +46,7 @@ public class Main {
 		JavaEsSpark.saveJsonToEs(sortieElasticJSON, "sparkDepuisKafka/test");
 
 		// *****************************************************************
-		// ~~~~~~~~~~~~~~~~~Pour sauvegarder une dataframe~~~~~~~~~~~~~~~~~~
+		// ~~~~~~~~~~~~~~~~~~Pour sauvegarder un dataframe~~~~~~~~~~~~~~~~~~
 		// *****************************************************************
 
 		// On sauvegarde dans elastic
