@@ -10,8 +10,6 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
-import org.elasticsearch.spark.sql.EsSparkSQL;
 
 public class Main {
 
@@ -28,10 +26,15 @@ public class Main {
 
 		// on lit le flux du kafka *EN BATCH*
 		Dataset<Row> ds1 = ss.read().format("kafka").option("kafka.bootstrap.servers", "localhost:9092")
-				.option("subscribe", "jsonToEs1").load().selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)",
+				.option("subscribe", "topic1").load().selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)",
 						"topic", "partition", "offset", "timestamp", "timestampType");
 
+		JavaRDD<String> jrdd2 = ds1.select(ds1.col("value")).toJavaRDD().map(v1 -> v1.mkString());
+
+		Dataset<Row> ds2 = ss.read().json(jrdd2);
+
 		ds1.show(50, false);
+		ds2.show(50, false);
 
 		// *****************************************************************
 		// ~~~~~~~Pour sauvegarder un message JSON qui vient de kafka~~~~~~~
@@ -42,15 +45,17 @@ public class Main {
 
 		// On transforme le dataframe en RDD<Row> qu'on transforme en RDD de
 		// string
-		JavaRDD<String> sortieElasticJSON = ds1.select(ds1.col("value")).toJavaRDD().map(v1 -> v1.mkString());
-		JavaEsSpark.saveJsonToEs(sortieElasticJSON, "sparkDepuisKafka/test");
+		// JavaRDD<String> sortieElasticJSON =
+		// ds1.select(ds1.col("value")).toJavaRDD().map(v1 -> v1.mkString());
+		// JavaEsSpark.saveJsonToEs(sortieElasticJSON, "sparkDepuisKafka/test");
 
 		// *****************************************************************
 		// ~~~~~~~~~~~~~~~~~~Pour sauvegarder un dataframe~~~~~~~~~~~~~~~~~~
 		// *****************************************************************
 
 		// On sauvegarde dans elastic
-		EsSparkSQL.saveToEs(ds1.select("value"), "sparkDepuisDataframe/test");
+		// EsSparkSQL.saveToEs(ds1.select("value"),
+		// "sparkDepuisDataframe/test");
 		// JavaEsSpark.saveToEs(sortieElasticJSON, arg1);
 	}
 
